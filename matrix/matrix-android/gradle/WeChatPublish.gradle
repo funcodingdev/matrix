@@ -381,7 +381,7 @@ class WeChatAndroidLibraryPublishExtension extends WeChatPublishExtension {
                 title = null
 
                 def classpathFiles = project.files(android.getBootClasspath().join(File.pathSeparator))
-                classpathFiles += project.files(project.configurations.compile)
+                classpathFiles += project.files(project.configurations.implementation)
                 doFirst { classpath += classpathFiles }
 
                 source = variant.javaCompile.source
@@ -550,11 +550,11 @@ class WeChatAndroidLibraryPublishExtension extends WeChatPublishExtension {
                                     def visitedDeps = [] as Set<Dependency>
 
                                     [
-                                            'compile':            'compile',
-                                            'api':                'compile',
-                                            'implementation':     'compile',
-                                            'runtimeOnly':        'runtime',
-                                            'provided':           'runtime'
+                                            'compile':            'implementation',
+                                            'api':                'api',
+                                            'implementation':     'implementation',
+                                            'runtimeOnly':        'runtimeClasspath',
+                                            'provided':           'runtimeClasspath'
                                     ].each { conf, scope ->
                                         if (project.configurations.find {
                                             it.name.equals(conf)

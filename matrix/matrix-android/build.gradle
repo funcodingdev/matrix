@@ -8,11 +8,12 @@ buildscript {
 
     }
 
-    gradle.ext.KOTLIN_VERSION = "1.4.32"
+    gradle.ext.KOTLIN_VERSION = "1.8.10"
+    gradle.ext.AGP_VERSION = "7.1.0"
 
     dependencies {
         // classpath
-        classpath 'com.android.tools.build:gradle:4.1.0'
+        classpath "com.android.tools.build:gradle:$gradle.AGP_VERSION"
         classpath 'digital.wup:android-maven-publish:3.6.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$gradle.KOTLIN_VERSION"
     }
