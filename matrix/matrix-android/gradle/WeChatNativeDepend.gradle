@@ -288,15 +288,23 @@ def getExportedHeaderFilters(targetVariant) {
 }
 
 def mountCopyNativePrebuiltsAction(targetVariant) {
+    println "[${project.name}]============> mountCopyNativePrebuiltsAction, targetVariant.name=${targetVariant.name} START!!!"
+
     def exportedArtifactsDir = getExportedNativeArtifactsDir(targetVariant)
     def exportedHeadersDir = new File(exportedArtifactsDir, HEADERS_DIR_NAME)
     def exportedPrebuiltsDir = new File(exportedArtifactsDir, PREBUILTS_DIR_NAME)
     if (!exportedPrebuiltsDir.exists()) {
         exportedPrebuiltsDir.mkdirs()
     }
+
+    println "[${project.name}]============> mountCopyNativePrebuiltsAction, exportedHeadersDir=${exportedHeadersDir}"
+    println "[${project.name}]============> mountCopyNativePrebuiltsAction, exportedPrebuiltsDir=${exportedPrebuiltsDir}"
+
     def bundleTask = targetVariant.getPackageLibrary() as Zip
     targetVariant.getExternalNativeBuildTasks().each { nativeBuildTask ->
         nativeBuildTask.doLast {
+            println "[${project.name}]============> mountCopyNativePrebuiltsAction, nativeBuildTask.doLast, from=${nativeBuildTask.getObjFolder()}, into=${exportedPrebuiltsDir}"
+
             cleanDirectory(exportedPrebuiltsDir)
             copy {
                 duplicatesStrategy DuplicatesStrategy.FAIL
@@ -310,6 +318,9 @@ def mountCopyNativePrebuiltsAction(targetVariant) {
         }
     }
     bundleTask.with {
+        println "[${project.name}]============> mountCopyNativePrebuiltsAction, bundleTask.with, from=${exportedPrebuiltsDir}, into=${AAR_JNI_DIRENTRY_NAME}"
+        println "[${project.name}]============> mountCopyNativePrebuiltsAction, bundleTask.with, from=${exportedHeadersDir}, into=${AAR_HEADERS_DIRENTRY_NAME}"
+
         from(exportedPrebuiltsDir) {
             // 'so' file is automatically packaged into the AAR.
             exclude '**/*.so'
@@ -319,6 +330,8 @@ def mountCopyNativePrebuiltsAction(targetVariant) {
             into AAR_HEADERS_DIRENTRY_NAME
         }
     }
+
+    println "[${project.name}]============> mountCopyNativePrebuiltsAction, targetVariant.name=${targetVariant.name} END!!!"
 }
 
 def exposeNativeArtifacts(targetVariant) {
@@ -400,12 +413,12 @@ def generateBuildInfoHeader(boolean stubOnly) {
 }
 
 def extractNativeDependencies(targetVariants) {
-    println "[${project.name}]============> extractNativeDependencies"
+    println "[${project.name}]============> extractNativeDependencies START!!!"
 
     def extractedNativeDepsDir = getExtractedNativeDependenciesDir()
 
     targetVariants.each { targetVariant ->
-        println "[${project.name}]============> extractNativeDependencies, targetVariants.each, targetVariant.name=${targetVariant.name}"
+        println "[${project.name}]============> extractNativeDependencies, targetVariant.name=${targetVariant.name}"
 
         def compileClasspath = configurations.findByName("${targetVariant.name}CompileClasspath")
 
@@ -418,7 +431,7 @@ def extractNativeDependencies(targetVariants) {
         }.getArtifacts().artifactFiles.files
 
         projectNativeDepDirs.each { projDir ->
-            println "[${project.name}]============> extractNativeDependencies, targetVariants.each, targetVariant.name=${targetVariant.name}, projectNativeDepDirs.each, projDir=${projDir}, from=${new File(projDir, HEADERS_DIR_NAME).absolutePath}, into=${new File(extractedNativeDepsDir, HEADERS_DIR_NAME).absolutePath}"
+            println "[${project.name}]============> extractNativeDependencies, projectNativeDepDirs.each, projDir=${projDir}, from=${new File(projDir, HEADERS_DIR_NAME).absolutePath}, into=${new File(extractedNativeDepsDir, HEADERS_DIR_NAME).absolutePath}"
 
             copy {
                 duplicatesStrategy DuplicatesStrategy.FAIL
@@ -429,7 +442,7 @@ def extractNativeDependencies(targetVariants) {
         }
 
         aarPaths.each { aarPath ->
-            println "[${project.name}]============> extractNativeDependencies, targetVariants.each, targetVariant.name=${targetVariant.name}, aarPaths.each, aarPath=${aarPath}, from=${zipTree(aarPath)}, into=${new File(extractedNativeDepsDir, HEADERS_DIR_NAME).absolutePath}"
+            println "[${project.name}]============> extractNativeDependencies, aarPaths.each, aarPath=${aarPath}, from=${zipTree(aarPath)}, into=${new File(extractedNativeDepsDir, HEADERS_DIR_NAME).absolutePath}"
 
             copy {
                 duplicatesStrategy DuplicatesStrategy.FAIL
@@ -447,11 +460,13 @@ def extractNativeDependencies(targetVariants) {
         }
 
         targetVariant.getExternalNativeBuildTasks().each { nativeBuildTask ->
-            println "[${project.name}]============> extractNativeDependencies, targetVariants.each, targetVariant.name=${targetVariant.name}, targetVariant.getExternalNativeBuildTasks.each"
+            println "[${project.name}]============> extractNativeDependencies, targetVariant.getExternalNativeBuildTasks.each"
 
             nativeBuildTask.doFirst {
 
                 projectNativeDepDirs.each { projDir ->
+                    println "[${project.name}]============> extractNativeDependencies, projectNativeDepDirs.each projDir=${projDir}, from=${new File(projDir, HEADERS_DIR_NAME).absolutePath}, into=${new File(extractedNativeDepsDir, HEADERS_DIR_NAME).absolutePath}"
+
                     copy {
                         duplicatesStrategy DuplicatesStrategy.FAIL
                         includeEmptyDirs false
@@ -461,6 +476,8 @@ def extractNativeDependencies(targetVariants) {
                 }
 
                 aarPaths.each { aarPath ->
+                    println "[${project.name}]============> extractNativeDependencies, aarPaths.each aarPath=${aarPath}, from=${zipTree(aarPath)}, into=${new File(extractedNativeDepsDir, HEADERS_DIR_NAME).absolutePath}"
+
                     copy {
                         duplicatesStrategy DuplicatesStrategy.FAIL
                         includeEmptyDirs false
@@ -477,6 +494,8 @@ def extractNativeDependencies(targetVariants) {
                 }
 
                 projectNativeDepDirs.each { projDir ->
+                    println "[${project.name}]============> extractNativeDependencies, projectNativeDepDirs.each from=${projDir}, into=${extractedNativeDepsDir}"
+
                     copy {
                         duplicatesStrategy DuplicatesStrategy.FAIL
                         includeEmptyDirs false
@@ -488,6 +507,8 @@ def extractNativeDependencies(targetVariants) {
                 }
 
                 aarPaths.each { aarPath ->
+                    println "[${project.name}]============> extractNativeDependencies, aarPaths.each from=${zipTree(aarPath)}, into=${new File(extractedNativeDepsDir, PREBUILTS_DIR_NAME).absolutePath}"
+
                     copy {
                         duplicatesStrategy DuplicatesStrategy.FAIL
                         includeEmptyDirs false
@@ -505,6 +526,7 @@ def extractNativeDependencies(targetVariants) {
             }
         }
     }
+    println "[${project.name}]============> extractNativeDependencies END!!!"
 }
 
 def injectBuildInfoModule() {
