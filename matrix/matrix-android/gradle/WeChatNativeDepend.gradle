@@ -141,6 +141,7 @@ def getGenerateOpsAnchorTask(variant) {
 }
 
 def handleAndroidApplication() {
+    println "[${project.name}]============> handleAndroidApplication"
     injectNativeDependenciesPath()
     injectBuildInfoModule()
     generateBuildInfoHeader(true)
@@ -165,6 +166,8 @@ def handleAndroidApplication() {
 }
 
 def handleAndroidLibrary() {
+    println "[${project.name}]============> handleAndroidLibrary"
+
     mountExtension()
     injectNativeDependenciesPath()
     injectBuildInfoModule()
@@ -193,6 +196,9 @@ def handleAndroidLibrary() {
         generateBuildInfoHeader(false)
         libVariants.each { variant ->
             def anchorTask = getGenerateOpsAnchorTask(variant)
+
+            println "[${project.name}]============> handleAndroidLibrary, project.afterEvaluate.libVariants.each, anchorTask!=null = ${anchorTask != null}"
+
             if (anchorTask != null) {
                 mountCopyNativePrebuiltsAction(variant)
                 anchorTask.doFirst generateBeforeAction
@@ -316,16 +322,24 @@ def mountCopyNativePrebuiltsAction(targetVariant) {
 }
 
 def exposeNativeArtifacts(targetVariant) {
+    println "[${project.name}]============> exposeNativeArtifacts, targetVariant.name=${targetVariant.name}"
+
     def apiElements = configurations.findByName("${targetVariant.name}ApiElements")
     def exposedVariant = apiElements.outgoing.variants.create(EXPORTED_NATIVE_ARTIFACTS_DIR_NAME)
     def exportedArtifactsDir = getExportedNativeArtifactsDir(targetVariant)
+
+    println "[${project.name}]============> exposeNativeArtifacts, exportedArtifactsDir=${exportedArtifactsDir}"
+
     exposedVariant.artifact(exportedArtifactsDir) { artifact ->
         artifact.setType(EXPORTED_NATIVE_ARTIFACTS_DIR_NAME)
     }
 }
 
 def injectNativeDependenciesPath() {
+    println "[${project.name}]============> injectNativeDependenciesPath"
+
     def extractedNativeDepsDir = getExtractedNativeDependenciesDir()
+    println "[${project.name}]============> injectNativeDependenciesPath, EXT_DEP=${extractedNativeDepsDir.absolutePath}"
 
     def ndkBuildOpt = project.android.defaultConfig.externalNativeBuild.ndkBuild
     ndkBuildOpt.getArguments().add('EXT_DEP=' + extractedNativeDepsDir.absolutePath)
@@ -335,6 +349,8 @@ def injectNativeDependenciesPath() {
 }
 
 def generateBuildInfoHeader(boolean stubOnly) {
+    println "[${project.name}]============> generateBuildInfoHeader, stubOnly=${stubOnly}"
+
     def hasBuildRevision = project.hasProperty('WX_BUILD_REVISION')
     def hasBuildBranch = project.hasProperty('WX_BUILD_BRANCH')
     def hasBuildTime = project.hasProperty('WX_BUILD_TIME')
@@ -347,6 +363,9 @@ def generateBuildInfoHeader(boolean stubOnly) {
     if (!buildInfoHeaderDir.exists()) {
         buildInfoHeaderDir.mkdirs()
     }
+
+    println "[${project.name}]============> generateBuildInfoHeader, stubOnly=${stubOnly}, exportedHeadersDir=${exportedHeadersDir.absolutePath}"
+
     def buildInfoHeaderFile = new File(buildInfoHeaderDir, 'build-info.h')
     buildInfoHeaderFile.withPrintWriter { pw ->
         pw.println('#ifndef __MM_AUTOGENARATED_BUILD_INFO_H__')
@@ -381,9 +400,13 @@ def generateBuildInfoHeader(boolean stubOnly) {
 }
 
 def extractNativeDependencies(targetVariants) {
+    println "[${project.name}]============> extractNativeDependencies"
+
     def extractedNativeDepsDir = getExtractedNativeDependenciesDir()
 
     targetVariants.each { targetVariant ->
+        println "[${project.name}]============> extractNativeDependencies, targetVariants.each, targetVariant.name=${targetVariant.name}"
+
         def compileClasspath = configurations.findByName("${targetVariant.name}CompileClasspath")
 
         def projectNativeDepDirs = compileClasspath.incoming.artifactView { config ->
@@ -395,6 +418,8 @@ def extractNativeDependencies(targetVariants) {
         }.getArtifacts().artifactFiles.files
 
         projectNativeDepDirs.each { projDir ->
+            println "[${project.name}]============> extractNativeDependencies, targetVariants.each, targetVariant.name=${targetVariant.name}, projectNativeDepDirs.each, projDir=${projDir}, from=${new File(projDir, HEADERS_DIR_NAME).absolutePath}, into=${new File(extractedNativeDepsDir, HEADERS_DIR_NAME).absolutePath}"
+
             copy {
                 duplicatesStrategy DuplicatesStrategy.FAIL
                 includeEmptyDirs false
@@ -404,6 +429,8 @@ def extractNativeDependencies(targetVariants) {
         }
 
         aarPaths.each { aarPath ->
+            println "[${project.name}]============> extractNativeDependencies, targetVariants.each, targetVariant.name=${targetVariant.name}, aarPaths.each, aarPath=${aarPath}, from=${zipTree(aarPath)}, into=${new File(extractedNativeDepsDir, HEADERS_DIR_NAME).absolutePath}"
+
             copy {
                 duplicatesStrategy DuplicatesStrategy.FAIL
                 includeEmptyDirs false
@@ -420,6 +447,7 @@ def extractNativeDependencies(targetVariants) {
         }
 
         targetVariant.getExternalNativeBuildTasks().each { nativeBuildTask ->
+            println "[${project.name}]============> extractNativeDependencies, targetVariants.each, targetVariant.name=${targetVariant.name}, targetVariant.getExternalNativeBuildTasks.each"
 
             nativeBuildTask.doFirst {
 
@@ -480,6 +508,8 @@ def extractNativeDependencies(targetVariants) {
 }
 
 def injectBuildInfoModule() {
+    println "[${project.name}]============> injectBuildInfoModule"
+
     def hasBuildRevision = project.hasProperty('WX_BUILD_REVISION')
     def hasBuildBranch = project.hasProperty('WX_BUILD_BRANCH')
     def hasBuildTime = project.hasProperty('WX_BUILD_TIME')
@@ -494,15 +524,21 @@ def injectBuildInfoModule() {
     def buildInfoModuleDir = new File(nativeModuleDir, 'build-info')
 
     def makeFilePath = new File(buildInfoModuleDir, 'Android.mk')
+    println "[${project.name}]============> injectBuildInfoModule, BUILD_SHARED_LIBRARY=${makeFilePath.absolutePath}"
+
     def ndkBuildOpts = project.android.defaultConfig.externalNativeBuildOptions.ndkBuild
     ndkBuildOpts.arguments "BUILD_SHARED_LIBRARY=${makeFilePath.absolutePath}"
 
     def cmakeInitFilePath = new File(buildInfoModuleDir, 'Init.cmake')
+    println "[${project.name}]============> injectBuildInfoModule, -DCMAKE_USER_MAKE_RULES_OVERRIDE=${cmakeInitFilePath.absolutePath}"
+
     def cmakeBuildOpts = project.android.defaultConfig.externalNativeBuildOptions.cmake
     cmakeBuildOpts.arguments "-DCMAKE_USER_MAKE_RULES_OVERRIDE=${cmakeInitFilePath.absolutePath}"
 }
 
 def generateBuildInfoModule() {
+    println "[${project.name}]============> generateBuildInfoModule"
+
     def hasBuildRevision = project.hasProperty('WX_BUILD_REVISION')
     def hasBuildBranch = project.hasProperty('WX_BUILD_BRANCH')
     def hasBuildTime = project.hasProperty('WX_BUILD_TIME')
@@ -520,6 +556,8 @@ def generateBuildInfoModule() {
     } else {
         cleanDirectory(buildInfoModuleDir)
     }
+
+    println "[${project.name}]============> generateBuildInfoModule, buildInfoModuleDir=${buildInfoModuleDir.absolutePath}"
 
     def hasBuildVersion = project.extensions.findByName('wechatPublish') != null
     def assemblyFilePath = new File(buildInfoModuleDir, 'build-info.S')
