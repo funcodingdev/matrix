@@ -20,7 +20,6 @@ import com.android.build.api.transform.*
 import com.android.build.gradle.internal.pipeline.TransformManager
 import com.android.builder.model.AndroidProject.FD_OUTPUTS
 import com.android.utils.FileUtils
-import com.google.common.base.Joiner
 import com.tencent.matrix.javalib.util.Log
 import com.tencent.matrix.plugin.trace.MatrixTrace
 import com.tencent.matrix.trace.Configuration
@@ -28,6 +27,7 @@ import com.tencent.matrix.trace.extension.MatrixTraceExtension
 import org.gradle.api.Project
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import org.gradle.internal.impldep.com.google.common.base.Joiner
 
 class MatrixTraceTransform(
         private val project: Project,

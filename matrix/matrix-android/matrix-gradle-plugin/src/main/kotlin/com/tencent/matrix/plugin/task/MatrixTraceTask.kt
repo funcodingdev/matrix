@@ -19,7 +19,6 @@ package com.tencent.matrix.plugin.task
 import com.android.build.api.transform.Status
 import com.android.build.gradle.internal.tasks.DexArchiveBuilderTask
 import com.android.builder.model.AndroidProject.FD_OUTPUTS
-import com.google.common.base.Joiner
 import com.tencent.matrix.javalib.util.Log
 import com.tencent.matrix.plugin.compat.CreationConfig
 import com.tencent.matrix.plugin.trace.MatrixTrace
@@ -32,11 +31,11 @@ import org.gradle.api.file.FileType
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
+import org.gradle.internal.impldep.com.google.common.base.Joiner
 import org.gradle.work.ChangeType
 import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
 import java.io.File
-import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutionException
 
